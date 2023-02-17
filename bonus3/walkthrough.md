@@ -215,3 +215,37 @@ Continuing.
 
 From there we can test our input.
 
+
+After test we realise a few things.
+
+
+The local_98 actually has the file result, it then does an atoi on av[1] and use the result to put a '\0' in local_98.
+
+So if we give him 0, it will do that : 
+
+```c
+local_98[0] = '\0'
+```
+
+It then use strcmp to compare the same av[1] with local_98.
+
+So in our case its doing this :
+
+```c
+strcmp("", '0');
+```
+
+If that result goes to 0 we get our shell, but since 0 is equal to 48 in decimal..
+
+We can give him an empty string, so that atoi return 0, and it will compare "" with "".
+
+
+```sh
+bonus3@RainFall:~$ ./bonus3 ""
+$
+$ cat /home/user/end/.pass
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c
+```
+
+And that's the end of the CTF !
+
