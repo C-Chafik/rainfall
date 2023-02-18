@@ -1,7 +1,5 @@
 # Bonus0
 
-
-
 ```sh
 (gdb) info func
 All defined functions:
@@ -38,7 +36,6 @@ Non-debugging symbols:
 (gdb) 
 ```
 
-
 ```sh
 bonus0@RainFall:~$ ls
 bonus0
@@ -64,8 +61,8 @@ bonus0@RainFall:~$
 
 ```
 
+Ghidra :
 
-Lets check the source code :
 
 ```c
 void pp(char *param_1)
@@ -167,6 +164,7 @@ But we know only the 20 first character of our input will be given to the rest o
 
 Lets test it 
 
+With > 20 A in the input :
 
 ```sh
 bonus0@RainFall:~$ ./bonus0 
@@ -285,7 +283,7 @@ Program received signal SIGSEGV, Segmentation fault.
 
 And it did executed system(), but we dont have space to add an argument.
 
-So we are going to change our approache and insert a shellcode, since we control the EIP we can make it points to a shellcode, lets try this.
+So we are going to change our approache and insert a shellcode, since we control the EIP we can make it point to a shellcode, lets try this.
 
 We are going to place our shellcode into av[1], and give the start of av[1] to the EIP.
 

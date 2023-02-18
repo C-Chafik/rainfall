@@ -189,6 +189,8 @@ End of assembler dump.
 (gdb)
 ```
 
+Ghidra :
+
 ```c
 undefined4 main(void)
 
@@ -306,14 +308,11 @@ undefined4 main(void)
 }
 ```
 
-
-And the source seems very complicated to undurstand.
-
-The programs end up by checking some variable, and execute a shell for us 
-
 It seems that the program reads input, and look for keyword like "auth", "login", "reset" or "service".
 
-We might to find the right combination of input in order to make him execute a shell.
+It then end up executing a shell when some conditions are met.
+
+We have find the right combination of input in order to make him execute a shell.
 
 ```sh
 level8@RainFall:~$ ./level8 
@@ -374,7 +373,7 @@ uVar11 as bool must not exist, and uVar8 as bool must be different from uVar11.
 
 After that auth[8] must different from 0 to exec the shell, lets see what we can do.
 
-After every input, the program print us the addresses of the 'service' and 'auth' variable, they seems to get a value when we type their input :
+After every input, the program print us the addressesof the 'service' and 'auth' variable, they seems to get a value when we type their input :
 
 
 ```sh
@@ -400,7 +399,7 @@ Password:
 0x804a008, 0x804a018
 ```
 
-If the auth variable is (nil) we will segfault since the if check the auth variable.
+If the auth variable is (nil) we will segfault since the 'if' check the auth variable.
 
 ```sh
 level8@RainFall:~$ ./level8
@@ -438,7 +437,7 @@ service
 0x804a068, 0x804a098
 ``` 
 
-After each time we give the input, the adresses seems to move foward.
+After each time we give the input, the adress seems to move foward.
 
 Lets try logging in with this input :
 
@@ -482,4 +481,4 @@ $
 
 It worked kind randomly, but its easy to guess that we just had to read the source code in order to know the good combination of input to get out flag.
 
-I guess this level shows us that, by reverse a binary, we can learn his working flow and exploit it, so no exploit this time.
+I guess this level shows us that, by reversing a binary, we can learn his working flow and exploit it, no script this time.

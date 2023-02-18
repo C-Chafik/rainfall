@@ -71,7 +71,7 @@ End of assembler dump.
 
 ```
 
-
+Ghidra :
 
 ```c
 undefined4 main(undefined4 param_1,int param_2)
@@ -100,23 +100,17 @@ This one is kinda simple to undurstand.
 
 The program takes two input, an integer, and a string.
 
-
-If the integer is less then 10, then it does a memcpy on our string to a buffer with the limit fixed to integer * 4.
-
+If the integer is less then 10, then it does a memcpy on av[2] to a buffer with the limit fixed to integer * 4.
 
 And after that if the integer is == 0x574f4c46 (1464814662 in decimal) it execute a shell.
 
 The program return 0 if the integer is less then 0, or 1 if its higher, this help us to know if our input is right or not.
 
-
-This is pretty straightfoward, we wanna overflow to overwrite the integer so its equal 0x574f4c46, but how can we overflow if we can just have 9 * 4 = 36 buffer overflowing ?
-
+This is pretty straightfoward, we wanna overflow to overwrite the integer so its equal 0x574f4c46, but how can we overflow if we can just have 9 * 4 = 36 buffer lenght ?
 
 Since the program first check the integer, and then times it by 4 we can trick it.
 
-
-By using integer underflow, we are going to give him INT_MIN which will enter the first if, an then will become a positive integer after it get timed by 4.
-
+By using integer underflow, we are going to give him INT_MIN which will enter the first if, then it will become a positive integer after it get timed by 4.
 
 An exemple here.
 
@@ -154,13 +148,11 @@ Integer in if -2147483630
 Integer in memcpy 72
 ```
 
-
 We can now overflow the buffer with 72 char, if we need more space we just need to lower that integer.
 
 We now just have to find the integer address and overwrite it.
 
 Lets find the address of the integer so we can overflow it.
-
 
 ```sh
 (gdb) disas main
@@ -202,19 +194,18 @@ Dump of assembler code for function main:
 End of assembler dump.
 (gdb)
 ```
+At *main+84 we know our integer is at esp + 0x3c (+60) so lets overwrite that.
 
-At main+84 we know our integer is at esp + 0x3c (60) so lets overwrite that.
+Since the memcpy will copy our input to the buffer, our input will start where the buffer got initiated, at the top of the stack.
 
-Since the memcpy will copy our input to the buffer, our input will start where the buffer got initated, so at the top of the stack.
-
-Lets place a break point the that place
+Lets place a break point to that place
 
 ```sh
 (gdb) br *main+84
 Breakpoint 1 at 0x8048478
 ```
 
-Now we are going to put 60 A into the buffer in order to find where it start.
+Now we are going to put 60 'A' into the buffer in order to find where it start.
 
 ```sh
 
@@ -278,7 +269,7 @@ Breakpoint 1, 0x08048478 in main ()
 
 Our buffer start at 0xbffff6c4.
 
-And we know the variable we want to overwrite is at $esp + 0x3c
+And we know the variable we wanna to overwrite is at $esp + 0x3c
 
 Simple math :
 

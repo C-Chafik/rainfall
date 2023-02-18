@@ -1,10 +1,6 @@
 # Level 0
 
-First level, i tried what i learned in Snow-Crash
-
-
 The debugger ltrace, strace, doesn't work, and valgrind is not installed, so i used GDB.
-
 
 Using GDB i first saw that the binary used atoi in the first place, if you dont provide any argument to the binary it will segfault.
 
@@ -16,7 +12,7 @@ level0@RainFall:~$
 ```
 
 
-And if you provide on or more :
+And if you provide one or more :
 ```s
 No !
 ```
@@ -75,4 +71,4 @@ $
 
 When we gave him 423 it opened us a shell, and when we check the id, it opened it as level1 !
 
-Nothing too hard here, just had to cat the password and go to the next level.
+Nothing too hard here.
